@@ -39,6 +39,7 @@ public:
 	};
 
 	static bool Quiet;
+	static bool Debug;
 	static bool LogToFile;
 	static bool Fixed;
 	static bool Flush;
@@ -74,6 +75,7 @@ private:
 	const LogFormat _output_format;
 
 	const bool _quiet;
+	const bool _debug;
 	const bool _fixed;
 	const bool _flush;
 	const bool _color;
@@ -256,9 +258,9 @@ private:
 
 public:
 	inline Logger(LogLevel l, const std::string f = LogFileName) :
-			_stream(new Stream(l, f)), _output_format(OutputFormat), _quiet(Quiet), _fixed(Fixed), _flush(Flush), _color(
-			    Color), _precision(Precision), _reference_width(ReferenceWidth), _size(Size), _log_to_file(LogToFile), _log_file_name(
-			    LogFileName), _singular(false), _matrix_type(0), _dimension(0), _dimensions(0)
+			_stream(new Stream(l, f)), _output_format(OutputFormat), _quiet(Quiet), _debug(Debug), _fixed(Fixed), _flush(
+			    Flush), _color(Color), _precision(Precision), _reference_width(ReferenceWidth), _size(Size), _log_to_file(
+			    LogToFile), _log_file_name(LogFileName), _singular(false), _matrix_type(0), _dimension(0), _dimensions(0)
 	{
 		if (isLogToFile())
 		{

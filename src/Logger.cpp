@@ -9,10 +9,11 @@
 namespace nl_uu_science_gmt
 {
 bool Logger::Quiet = false;
+bool Logger::Debug = false;
 bool Logger::LogToFile = false;
 bool Logger::Fixed = true;
 bool Logger::Flush = false;
-bool Logger::Color = true;
+bool Logger::Color = false;
 
 size_t Logger::Precision = 5;
 size_t Logger::ReferenceWidth = 32;
@@ -307,25 +308,25 @@ void Logger::output()
 {
 	const std::string input = _stream->buffer.str();
 
-	if (_stream->log_level > 2)
+	if (_stream->log_level > LOG_WARN)
 	{
 		if (_color) std::cerr << "\033[1m\033[31m";
 		std::cerr << input << std::endl;
 		if (_color) std::cerr << "\033[0m";
 	}
-	else if (_stream->log_level > 1)
+	else if (_stream->log_level == LOG_WARN)
 	{
-		if (_color) std::clog << "\033[1m\033[33m";
+		if (_color) std::cerr << "\033[1m\033[33m";
+		std::cerr << input << std::endl;
+		if (_color) std::cerr << "\033[0m";
+	}
+	else if (_stream->log_level == LOG_DEBUG && (_debug || !_quiet))
+	{
+		if (_color) std::clog << "\033[1m\033[36m";
 		std::clog << input << std::endl;
 		if (_color) std::clog << "\033[0m";
 	}
-	else if (_stream->log_level > 0 && !_quiet)
-	{
-		if (_color) std::cout << "\033[1m\033[36m";
-		std::cout << input << std::endl;
-		if (_color) std::cout << "\033[0m";
-	}
-	else if (_stream->log_level == 0 && !_quiet)
+	else if (_stream->log_level == LOG_INFO && !_quiet)
 	{
 		std::cout << input << std::endl;
 	}
@@ -337,7 +338,7 @@ void Logger::write()
 
 	if (_stream->file_buffer.is_open())
 	{
-		_stream->file_buffer << input;
+		_stream->file_buffer << input << std::endl;
 	}
 //		else if (openLogfile(_log_file_name))
 //		{
@@ -583,13 +584,32 @@ Logger& Logger::operator<<(const cv::Mat& mat)
 
 int main(int argc, char** argv)
 {
-	cv::RNG rng(100);
-	int size[] = { 4, 3, 2 };
-	cv::Mat m(3, size, CV_8UC3);
-	rng.fill(m, cv::RNG::UNIFORM, cv::Scalar(0, 0, 0), cv::Scalar(128, 128, 128));
+	// Not necessary, but the flags we set later look nicer
+	typedef nl_uu_science_gmt::Logger Logger;
 
+	// A random matrix
+	cv::RNG rng(100);
+	int size[] = { 2, 2, 3, 3 };
+	cv::Mat m(4, size, CV_32FC3);
+	rng.fill(m, cv::RNG::UNIFORM, cv::Scalar(-128, -128, -128), cv::Scalar(128, 128, 128));
+
+	// Hello world
 	CVLog(INFO) << "Hello World! Look at this matrix: " << m;
+
+	// Some flag manipulations
+	Logger::Quiet = true;
+	CVLog(INFO) << "Hidden message";
+	Logger::Debug = false;
+	CVLog(DEBUG) << "Hidden debug message";
+	Logger::Debug = true;
+	CVLog(DEBUG) << "Show DEBUG message even though Quiet is true, Debug is true";
+	Logger::Debug = false;
+
+	// Log to a file. Default filename is "log.txt"
+	Logger::LogToFile = true;
+	CVLog(INFO) << "Hidden from view but not from log file";
+	CVLog(WARN) << "Always show WARN messages in stderr and in log file";
+	CVLog(ERROR) << "Always show ERROR messages in stderr and in log file";
 
 	return 0;
 }
-

@@ -14,9 +14,9 @@ Usage
 	The logger is called by a macro defined in the header:
 	CVLog(INFO) << "..." << variable << "," << structure;
 
-	INFO goes to std:cout
-	DEBUG goes to std:cout
-	WARN goes to std:clog
+	INFO goes to std::cout
+	DEBUG goes to std::clog
+	WARN goes to std::cerr
 	ERROR goes to std::cerr
 
 	The logger is capable of logging any primitive (unsigned char will be converted to int),
