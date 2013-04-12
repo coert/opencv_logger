@@ -25,3 +25,8 @@ install (
   TARGETS opencv_logger
   LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/
 )
+
+FILE(GLOB header_files "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
+install (
+  FILES ${header_files} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/opencv_logger/
+)
