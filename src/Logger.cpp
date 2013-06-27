@@ -24,6 +24,13 @@ std::string Logger::LogFileName = "log.txt";
 const Logger::ImageTSMap Logger::ImageTypeStringMapping = Logger::initTypeStringMapping();
 const Logger::ImageTSMap Logger::ImagePrimitiveStringMapping = Logger::initPrimitiveStringMapping();
 
+const std::string Logger::Color_RED = "\033[1m\033[31m";
+const std::string Logger::Color_GREEN = "\033[1m\033[32m";
+const std::string Logger::Color_BLUE = "\033[1m\033[33m";
+const std::string Logger::Color_YELLOW = "\033[1m\033[33m";
+const std::string Logger::Color_CYAN = "\033[1m\033[36m";
+const std::string Logger::Color_RESET = "\033[0m";
+
 Logger Logger::create(const Logger::LogLevel level, const std::string file, const int line)
 {
 	Logger logger(level);
@@ -253,16 +260,16 @@ std::string Logger::getLevelDescr(LogLevel level)
 {
 	switch (level)
 	{
-	case LOG_INFO:
-		return "INFO ";
-	case LOG_DEBUG:
-		return "DEBUG";
-	case LOG_WARN:
-		return "WARN ";
-	case LOG_ERROR:
-		return "ERROR";
-	default:
-		return "INFO ";
+		case LOG_INFO:
+			return "INFO ";
+		case LOG_DEBUG:
+			return "DEBUG";
+		case LOG_WARN:
+			return "WARN ";
+		case LOG_ERROR:
+			return "ERROR";
+		default:
+			return "INFO ";
 	}
 }
 
@@ -310,25 +317,26 @@ void Logger::output()
 
 	if (_stream->log_level > LOG_WARN)
 	{
-		if (_color) std::cerr << "\033[1m\033[31m";
+		if (_color) std::cerr << Color_RED;
 		std::cerr << input << std::endl;
-		if (_color) std::cerr << "\033[0m";
+		if (_color) std::cerr << Color_RESET;
 	}
 	else if (_stream->log_level == LOG_WARN)
 	{
-		if (_color) std::cerr << "\033[1m\033[33m";
+		if (_color) std::cerr << Color_YELLOW;
 		std::cerr << input << std::endl;
-		if (_color) std::cerr << "\033[0m";
+		if (_color) std::cerr << Color_RESET;
 	}
 	else if (_stream->log_level == LOG_DEBUG && (_debug || !_quiet))
 	{
-		if (_color) std::clog << "\033[1m\033[36m";
+		if (_color) std::clog << Color_CYAN;
 		std::clog << input << std::endl;
-		if (_color) std::clog << "\033[0m";
+		if (_color) std::clog << Color_RESET;
 	}
 	else if (_stream->log_level == LOG_INFO && !_quiet)
 	{
 		std::cout << input << std::endl;
+		if (_color) std::cout << Color_RESET;
 	}
 }
 
@@ -346,9 +354,9 @@ void Logger::write()
 //		}
 	else
 	{
-		if (_color) std::cerr << "\033[1m\033[31m";
+		if (_color) std::cerr << Color_RED;
 		std::cerr << "Unable to open logfile: " << _log_file_name << std::endl;
-		if (_color) std::cerr << "\033[0m";
+		if (_color) std::cerr << Color_RESET;
 	}
 //	else if (_stream->file_buffer.is_open())
 //	{
@@ -466,114 +474,114 @@ Logger& Logger::operator<<(const cv::Mat& mat)
 
 	switch (_matrix_type)
 	{
-	case CV_8U:
-	{
-		cv::Mat_<uchar> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_8UC2:
-	{
-		cv::Mat_<cv::Vec2b> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_8UC3:
-	{
-		cv::Mat_<cv::Vec3b> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_8UC4:
-	{
-		cv::Mat_<cv::Vec4b> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_16U:
-	{
-		cv::Mat_<ushort> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_16S:
-	{
-		cv::Mat_<short> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_32S:
-	{
-		cv::Mat_<int> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_32SC2:
-	{
-		cv::Mat_<cv::Vec2i> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_32SC3:
-	{
-		cv::Mat_<cv::Vec3i> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_32SC4:
-	{
-		cv::Mat_<cv::Vec4i> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_32F:
-	{
-		cv::Mat_<float> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_32FC2:
-	{
-		cv::Mat_<cv::Vec2f> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_32FC3:
-	{
-		cv::Mat_<cv::Vec3f> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_32FC4:
-	{
-		cv::Mat_<cv::Vec4f> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_64F:
-	{
-		cv::Mat_<double> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_64FC2:
-	{
-		cv::Mat_<cv::Vec2d> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_64FC3:
-	{
-		cv::Mat_<cv::Vec3d> type = mat;
-		*this << type;
-		break;
-	}
-	case CV_64FC4:
-	{
-		cv::Mat_<cv::Vec4d> type = mat;
-		*this << type;
-		break;
-	}
+		case CV_8U:
+		{
+			cv::Mat_<uchar> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_8UC2:
+		{
+			cv::Mat_<cv::Vec2b> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_8UC3:
+		{
+			cv::Mat_<cv::Vec3b> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_8UC4:
+		{
+			cv::Mat_<cv::Vec4b> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_16U:
+		{
+			cv::Mat_<ushort> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_16S:
+		{
+			cv::Mat_<short> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_32S:
+		{
+			cv::Mat_<int> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_32SC2:
+		{
+			cv::Mat_<cv::Vec2i> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_32SC3:
+		{
+			cv::Mat_<cv::Vec3i> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_32SC4:
+		{
+			cv::Mat_<cv::Vec4i> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_32F:
+		{
+			cv::Mat_<float> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_32FC2:
+		{
+			cv::Mat_<cv::Vec2f> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_32FC3:
+		{
+			cv::Mat_<cv::Vec3f> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_32FC4:
+		{
+			cv::Mat_<cv::Vec4f> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_64F:
+		{
+			cv::Mat_<double> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_64FC2:
+		{
+			cv::Mat_<cv::Vec2d> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_64FC3:
+		{
+			cv::Mat_<cv::Vec3d> type = mat;
+			*this << type;
+			break;
+		}
+		case CV_64FC4:
+		{
+			cv::Mat_<cv::Vec4d> type = mat;
+			*this << type;
+			break;
+		}
 	}
 
 	_singular = s;
@@ -581,35 +589,3 @@ Logger& Logger::operator<<(const cv::Mat& mat)
 }
 
 } /* namespace nl_uu_science_gmt */
-
-int main(int argc, char** argv)
-{
-	// Not necessary, but the flags we set later look nicer
-	typedef nl_uu_science_gmt::Logger Logger;
-
-	// A random matrix
-	cv::RNG rng(100);
-	int size[] = { 2, 2, 3, 3 };
-	cv::Mat m(4, size, CV_32FC3);
-	rng.fill(m, cv::RNG::UNIFORM, cv::Scalar(-128, -128, -128), cv::Scalar(128, 128, 128));
-
-	// Hello world
-	CVLog(INFO) << "Hello World! Look at this matrix: " << m;
-
-	// Some flag manipulations
-	Logger::Quiet = true;
-	CVLog(INFO) << "Hidden message";
-	Logger::Debug = false;
-	CVLog(DEBUG) << "Hidden debug message";
-	Logger::Debug = true;
-	CVLog(DEBUG) << "Show DEBUG message even though Quiet is true, Debug is true";
-	Logger::Debug = false;
-
-	// Log to a file. Default filename is "log.txt"
-	Logger::LogToFile = true;
-	CVLog(INFO) << "Hidden from view but not from log file";
-	CVLog(WARN) << "Always show WARN messages in stderr and in log file";
-	CVLog(ERROR) << "Always show ERROR messages in stderr and in log file";
-
-	return 0;
-}

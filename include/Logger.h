@@ -20,12 +20,16 @@
 #include <set>
 #include <vector>
 
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/convenience.hpp>
+
 #include "opencv2/core/core.hpp"
 
 #define CVLog(level) nl_uu_science_gmt::Logger::create(nl_uu_science_gmt::Logger::LOG_##level, __FILE__, __LINE__)
 
 namespace nl_uu_science_gmt
 {
+
 class Logger
 {
 public:
@@ -51,6 +55,13 @@ public:
 	static LogFormat OutputFormat;
 	static LogLevel Level;
 	static std::string LogFileName;
+
+	const static std::string Color_RED;
+	const static std::string Color_GREEN;
+	const static std::string Color_BLUE;
+	const static std::string Color_YELLOW;
+	const static std::string Color_CYAN;
+	const static std::string Color_RESET;
 
 private:
 	struct Stream
@@ -259,12 +270,20 @@ private:
 public:
 	inline Logger(LogLevel l, const std::string f = LogFileName) :
 			_stream(new Stream(l, f)), _output_format(OutputFormat), _quiet(Quiet), _debug(Debug), _fixed(Fixed), _flush(
-			    Flush), _color(Color), _precision(Precision), _reference_width(ReferenceWidth), _size(Size), _log_to_file(
-			    LogToFile), _log_file_name(LogFileName), _singular(false), _matrix_type(0), _dimension(0), _dimensions(0)
+					Flush), _color(Color), _precision(Precision), _reference_width(ReferenceWidth), _size(Size), _log_to_file(
+					LogToFile), _log_file_name(LogFileName), _singular(true), _matrix_type(0), _dimension(0), _dimensions(0)
 	{
 		if (isLogToFile())
 		{
 			_stream->file_buffer.open(_log_file_name.c_str(), std::ofstream::app);
+			if (!_stream->file_buffer.is_open())
+			{
+				std::string path = _log_file_name;
+				path = path.substr(0, path.find_last_of("\\/"));
+				boost::filesystem::create_directories(path);
+				_stream->file_buffer.open(_log_file_name.c_str(), std::ofstream::app);
+				assert(_stream->file_buffer.is_open());
+			}
 		}
 	}
 
@@ -369,17 +388,17 @@ public:
 
 			switch (_output_format)
 			{
-			case FORMAT_OPENCV:
-				*this << "cv::Mat var = (cv::Mat_<" << getMatPrimitiveFromCode(_matrix_type) << " >";
-				*this << "(" << t_m.rows << ", " << t_m.cols << ") << \\\n";
-				break;
-			case FORMAT_MATLAB:
-			case FORMAT_CSV:
-				break;
-			case FORMAT_DEFAULT:
-			default:
-				*this << getMatDepthFromCode(matrix.type()) << "(" << t_m.rows << "x" << t_m.cols << ")\n";
-				break;
+				case FORMAT_OPENCV:
+					*this << "cv::Mat var = (cv::Mat_<" << getMatPrimitiveFromCode(_matrix_type) << " >";
+					*this << "(" << t_m.rows << ", " << t_m.cols << ") << \\\n";
+					break;
+				case FORMAT_MATLAB:
+				case FORMAT_CSV:
+					break;
+				case FORMAT_DEFAULT:
+				default:
+					*this << getMatDepthFromCode(matrix.type()) << "(" << t_m.rows << "x" << t_m.cols << ")\n";
+					break;
 			}
 
 			_size = s;
@@ -390,27 +409,27 @@ public:
 			{
 				switch (_output_format)
 				{
-				case FORMAT_MATLAB:
-				{
-					if (y > 0)
-						*this << "  ";
-					else
-						*this << "  ";
-					break;
-				}
-				case FORMAT_C:
-				{
-					if (y > 0)
-						*this << "  ";
-					else
-						*this << "{ ";
-					break;
-				}
-				case FORMAT_CSV:
-					break;
-				case FORMAT_DEFAULT:
-				default:
-					break;
+					case FORMAT_MATLAB:
+					{
+						if (y > 0)
+							*this << "  ";
+						else
+							*this << "  ";
+						break;
+					}
+					case FORMAT_C:
+					{
+						if (y > 0)
+							*this << "  ";
+						else
+							*this << "{ ";
+						break;
+					}
+					case FORMAT_CSV:
+						break;
+					case FORMAT_DEFAULT:
+					default:
+						break;
 				}
 
 				for (int x = 0; x < t_m.cols; x++)
@@ -428,94 +447,94 @@ public:
 
 					switch (_output_format)
 					{
-					case FORMAT_OPENCV:
-					{
-						if (y == t_m.rows - 1 && x == t_m.cols - 1)
-							*this << point;
-						else if (x == 0)
-							*this << "               " << point << ", ";
-						else if (x == t_m.cols - 1)
-							*this << point << ", \\";
-						else
-							*this << point << ", ";
-						break;
-					}
-					case FORMAT_MATLAB:
-					{
-						if (x == t_m.cols - 1)
-							*this << point;
-						else
+						case FORMAT_OPENCV:
+						{
+							if (y == t_m.rows - 1 && x == t_m.cols - 1)
+								*this << point;
+							else if (x == 0)
+								*this << "               " << point << ", ";
+							else if (x == t_m.cols - 1)
+								*this << point << ", \\";
+							else
+								*this << point << ", ";
+							break;
+						}
+						case FORMAT_MATLAB:
+						{
+							if (x == t_m.cols - 1)
+								*this << point;
+							else
+								*this << point << " ";
+							break;
+						}
+						case FORMAT_C:
+						{
+							if (y == t_m.rows - 1 && x == t_m.cols - 1)
+								*this << point << " ";
+							else if (x == t_m.cols - 1)
+								*this << point << ", \\";
+							else
+								*this << point << ", ";
+							break;
+						}
+						case FORMAT_CSV:
+						{
+							if (x == t_m.cols - 1)
+								*this << point;
+							else
+								*this << point << ", ";
+							break;
+						}
+						case FORMAT_DEFAULT:
+						default:
 							*this << point << " ";
-						break;
-					}
-					case FORMAT_C:
-					{
-						if (y == t_m.rows - 1 && x == t_m.cols - 1)
-							*this << point << " ";
-						else if (x == t_m.cols - 1)
-							*this << point << ", \\";
-						else
-							*this << point << ", ";
-						break;
-					}
-					case FORMAT_CSV:
-					{
-						if (x == t_m.cols - 1)
-							*this << point;
-						else
-							*this << point << ", ";
-						break;
-					}
-					case FORMAT_DEFAULT:
-					default:
-						*this << point << " ";
-						break;
+							break;
 					}
 				}
 
 				switch (_output_format)
 				{
-				case FORMAT_OPENCV:
-				{
-					if (y != t_m.rows - 1) *this << "\n";
-					break;
-				}
-				case FORMAT_MATLAB:
-				{
-					if (y != t_m.rows - 1) *this << ";\n";
-					break;
-				}
-				case FORMAT_C:
-				{
-					if (y != t_m.rows - 1) *this << "\n";
-					break;
-				}
-				case FORMAT_DEFAULT:
-				default:
-					*this << "\n";
-					break;
+					case FORMAT_OPENCV:
+					{
+						if (y != t_m.rows - 1) *this << "\n";
+						break;
+					}
+					case FORMAT_MATLAB:
+					{
+						if (y != t_m.rows - 1) *this << ";\n";
+						break;
+					}
+					case FORMAT_C:
+					{
+						if (y != t_m.rows - 1) *this << "\n";
+						break;
+					}
+					case FORMAT_DEFAULT:
+					default:
+						*this << "\n";
+						break;
 				}
 			}
 
 			switch (_output_format)
 			{
-			case FORMAT_OPENCV:
-				*this << ");\n";
-				break;
-			case FORMAT_MATLAB:
-			{
-				if (_dimension != _dimensions - 1)
-					*this << ",\n";
-				else
-					*this << "]";
-				break;
-			}
-			case FORMAT_C:
-				*this << "}\n";
-				break;
-			case FORMAT_DEFAULT:
-			default:
-				break;
+				case FORMAT_OPENCV:
+					*this << ");\n";
+					break;
+				case FORMAT_MATLAB:
+				{
+					if (_dimension != _dimensions - 1)
+						*this << ",\n";
+					else
+						*this << "]";
+					break;
+				}
+				case FORMAT_C:
+					*this << "}\n";
+					break;
+				case FORMAT_DEFAULT:
+				default:
+					break;
 			}
 
 			_size = s;
@@ -536,11 +555,11 @@ public:
 			}
 			switch (_output_format)
 			{
-			case FORMAT_MATLAB:
-				*this << "reshape([ ";
-				break;
-			default:
-				break;
+				case FORMAT_MATLAB:
+					*this << "reshape([ ";
+					break;
+				default:
+					break;
 			}
 			_size = s;
 
@@ -553,16 +572,16 @@ public:
 				_size = 0;
 				switch (_output_format)
 				{
-				case FORMAT_OPENCV:
-					break;
-				case FORMAT_MATLAB:
-					break;
-				case FORMAT_CSV:
-					break;
-				case FORMAT_DEFAULT:
-				default:
-					*this << c << ", ";
-					break;
+					case FORMAT_OPENCV:
+						break;
+					case FORMAT_MATLAB:
+						break;
+					case FORMAT_CSV:
+						break;
+					case FORMAT_DEFAULT:
+					default:
+						*this << c << ", ";
+						break;
 				}
 
 				_size = s;
@@ -589,23 +608,23 @@ public:
 
 				switch (_output_format)
 				{
-				default:
-					if (c != t_m.size[d] - 1 && d != t_m.dims - 1) *this << "\n";
-					break;
+					default:
+						if (c != t_m.size[d] - 1 && d != t_m.dims - 1) *this << "\n";
+						break;
 				}
 			}
 
 			_size = 0;
 			switch (_output_format)
 			{
-			case FORMAT_MATLAB:
-				*this << ",[";
-				for (int d = 0; d < t_m.dims; ++d)
-					*this << t_m.size[d] << " ";
-				*this << "])";
-				break;
-			default:
-				break;
+				case FORMAT_MATLAB:
+					*this << ",[";
+					for (int d = 0; d < t_m.dims; ++d)
+						*this << t_m.size[d] << " ";
+					*this << "])";
+					break;
+				default:
+					break;
 			}
 			_size = s;
 		}
@@ -626,50 +645,50 @@ public:
 		T* val = vector.val;
 		switch (_output_format)
 		{
-		case FORMAT_OPENCV:
-			*this << getMatPrimitiveFromCode(_matrix_type) << "(";
-			break;
-		case FORMAT_C:
-		case FORMAT_CSV:
-		case FORMAT_MATLAB:
-			break;
-		default:
-		case FORMAT_DEFAULT:
-			*this << "(";
-			break;
+			case FORMAT_OPENCV:
+				*this << getMatPrimitiveFromCode(_matrix_type) << "(";
+				break;
+			case FORMAT_C:
+			case FORMAT_CSV:
+			case FORMAT_MATLAB:
+				break;
+			default:
+			case FORMAT_DEFAULT:
+				*this << "(";
+				break;
 		}
 		for (int i = 0; i < c; i++)
 		{
 			_size = _channel_widths.at(i);
 			switch (_output_format)
 			{
-			case FORMAT_MATLAB:
-				*this << val[i] << " ";
-				break;
-			case FORMAT_OPENCV:
-			case FORMAT_C:
-			case FORMAT_CSV:
-				*this << val[i];
-				if (i < c - 1) *this << ",";
-				break;
-			default:
-			case FORMAT_DEFAULT:
-				*this << val[i];
-				if (i < c - 1) *this << ";";
-				break;
+				case FORMAT_MATLAB:
+					*this << val[i] << " ";
+					break;
+				case FORMAT_OPENCV:
+				case FORMAT_C:
+				case FORMAT_CSV:
+					*this << val[i];
+					if (i < c - 1) *this << ",";
+					break;
+				default:
+				case FORMAT_DEFAULT:
+					*this << val[i];
+					if (i < c - 1) *this << ";";
+					break;
 			}
 		}
 		switch (_output_format)
 		{
-		case FORMAT_C:
-		case FORMAT_CSV:
-		case FORMAT_MATLAB:
-			break;
-		case FORMAT_OPENCV:
-		case FORMAT_DEFAULT:
-		default:
-			*this << ")";
-			break;
+			case FORMAT_C:
+			case FORMAT_CSV:
+			case FORMAT_MATLAB:
+				break;
+			case FORMAT_OPENCV:
+			case FORMAT_DEFAULT:
+			default:
+				*this << ")";
+				break;
 		}
 
 		return *this;
